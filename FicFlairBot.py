@@ -43,7 +43,7 @@ most_recent_comment = {}
 for submission in subreddit.new(limit=limit):
     submission_author = submission.author.name if submission.author is not None else ''
     for comment in submission.comments:
-        if comment.author is not None and comment.author != 'FicQuestionBot':
+        if comment.author is not None and comment.author.name != 'FicQuestionBot' and comment.author.name != 'FicFlairBot':
             if comment.author.name != submission_author:
                 if comment.author.name not in commenters:
                     commenters[comment.author.name] = 0
