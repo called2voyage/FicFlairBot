@@ -37,3 +37,38 @@ while not limit_found:
             break
     if not limit_found:
         limit = limit + 10
+
+commenters = {}
+most_recent_comment = {}
+for submission in subreddit.new(limit=limit):
+    submission_author = submission.author.name if submission.author is not None else ''
+    for comment in submission.comments:
+        if comment.author is not None and comment.author != 'FicQuestionBot':
+            if comment.author.name != submission_author:
+                if comment.author.name not in commenters:
+                    commenters[comment.author.name] = 0
+                    most_recent_comment[comment.author.name] = comment
+                commenters[comment.author.name] = commenters[comment.author.name] + 1
+
+for commenter, num_comments in commenters.items():
+    if num_comments >= 10:
+        avid_commenters.append(commenter)
+
+template = '20492542-6ace-11ea-abe8-0eb5501e2a6b' # Avid Commenter template
+for commenter in avid_commenters:
+    flair = next(subreddit.flair(commenter))
+    if flair['flair_css_class'] != 'avid-commenter':
+        if flair['flair_text'] != '':
+            flair_text = '%s, %s' % (flair['flair_text'], 'Avid Commenter')
+            subreddit.flair.set(commenter, text=flair_text, flair_template_id=template)
+        else:
+            subreddit.flair.set(commenter, text='Avid Commenter', flair_template_id=template)
+        most_recent_comment[commenter].reply('*Congratulations! You\'ve earned the "Avid Commenter" flair!*')
+
+for flair in subreddit.flair(limit=None):
+    if flair['flair_css_class'] == 'avid-commenter':
+        if flair['user'] not in avid_commenters:
+            if ',' in flair['flair_text']:
+                subreddit.flair.set(flair['user'], text=flair['flair_text'].replace(', Avid Commenter', ''), css_class='')
+            else:
+                subreddit.flair.delete(flair['user'])
