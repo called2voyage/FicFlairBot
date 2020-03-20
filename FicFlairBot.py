@@ -31,9 +31,11 @@ while not limit_found:
     n = 0
     for submission in subreddit.new(limit=limit):
         n = n + 1
-        if submission.created_utc.month != current_month:
+        if datetime.fromtimestamp(submission.created_utc, tz=timezone.utc).month != current_month:
             limit = n - 1
             limit_found = True
             break
     if not limit_found:
         limit = limit + 10
+
+print(limit)
