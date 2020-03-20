@@ -14,3 +14,26 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import praw
+from datetime import datetime, timezone
+
+reddit = praw.Reddit('bot2')
+print(reddit.user.me())
+subreddit = reddit.subreddit("IAmAFiction")
+print(subreddit)
+
+avid_commenters = []
+
+limit = 10
+limit_found = False
+current_month = datetime.now(tz=timezone.utc).month
+
+while not limit_found:
+    n = 0
+    for submission in subreddit.new(limit=limit):
+        n = n + 1
+        if submission.created_utc.month != current_month:
+            limit = n - 1
+            limit_found = True
+            break
+    if not limit_found:
+        limit = limit + 10
