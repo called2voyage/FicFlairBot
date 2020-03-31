@@ -42,7 +42,8 @@ commenters = {}
 most_recent_comment = {}
 for submission in subreddit.new(limit=limit):
     submission_author = submission.author.name if submission.author is not None else ''
-    for comment in submission.comments:
+    submission.comments.replace_more(limit=None)
+    for comment in submission.comments.list():
         if comment.author is not None and comment.author.name != 'FicQuestionBot' and comment.author.name != 'FicFlairBot':
             if comment.author.name != submission_author:
                 if comment.author.name not in commenters:
@@ -58,7 +59,7 @@ template = '20492542-6ace-11ea-abe8-0eb5501e2a6b' # Avid Commenter template
 for commenter in avid_commenters:
     flair = next(subreddit.flair(commenter))
     if flair['flair_css_class'] != 'avid-commenter':
-        if flair['flair_text'] != '':
+        if flair['flair_text'] != '' and flair['flair_text'] is not None:
             flair_text = '%s, %s' % (flair['flair_text'], 'Avid Commenter')
             subreddit.flair.set(commenter, text=flair_text, flair_template_id=template)
         else:
