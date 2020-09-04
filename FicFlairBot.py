@@ -14,12 +14,26 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import praw
+from prawutils.submissions import loop_submissions
 from datetime import datetime, timezone
 
 reddit = praw.Reddit('bot2')
 print(reddit.user.me())
 subreddit = reddit.subreddit("IAmAFiction")
 print(subreddit)
+
+def get_num_comments_per_commenter(submission, *args):
+    commenters = args[0]
+    most_recent_comment = args[1]
+    submission_author = submission.author.name if submission.author is not None else ''
+    submission.comments.replace_more(limit=None)
+    for comment in submission.comments.list():
+        if comment.author is not None and comment.author.name != 'FicQuestionBot' and comment.author.name != 'FicFlairBot':
+            if comment.author.name != submission_author:
+                if comment.author.name not in commenters:
+                    commenters[comment.author.name] = 0
+                    most_recent_comment[comment.author.name] = comment
+                commenters[comment.author.name] = commenters[comment.author.name] + 1
 
 avid_commenters = []
 
@@ -40,16 +54,7 @@ while not limit_found:
 
 commenters = {}
 most_recent_comment = {}
-for submission in subreddit.new(limit=limit):
-    submission_author = submission.author.name if submission.author is not None else ''
-    submission.comments.replace_more(limit=None)
-    for comment in submission.comments.list():
-        if comment.author is not None and comment.author.name != 'FicQuestionBot' and comment.author.name != 'FicFlairBot':
-            if comment.author.name != submission_author:
-                if comment.author.name not in commenters:
-                    commenters[comment.author.name] = 0
-                    most_recent_comment[comment.author.name] = comment
-                commenters[comment.author.name] = commenters[comment.author.name] + 1
+loop_submissions(subreddit, get_num_comments_per_commenter, limit, commenters, most_recent_comment)
 
 for commenter, num_comments in commenters.items():
     if num_comments >= 10:
